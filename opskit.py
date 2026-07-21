@@ -1,4 +1,8 @@
 import typer
+from pathlib import Path
+from typing import Annotated, Optional
+
+from monitor import Monitor
 
 app = typer.Typer(
     name="opskit",
@@ -6,9 +10,32 @@ app = typer.Typer(
 )
 
 @app.command()
-def monitor():
-    typer.echo("Monitoring system resources")
-
+def monitor(
+    remote: bool = False, 
+    file: Optional[str] = None,
+    username: Optional[str] = None,
+    host: Optional[str] = None,
+    key: Annotated[Optional[Path], typer.Option(exists=True)] = None,
+    port: int = 22, 
+    interval: float = 10
+):
+    if key is not None and not key.exists():
+        typer.echo(f"Key file {key} does not exist.")
+        raise typer.Exit(code=1)
+    
+    key_str = str(key) if key else None
+    
+    monitor_instance = Monitor(
+        remote=remote, 
+        file=file, 
+        username=username, 
+        host=host, 
+        port=port, 
+        key=key_str,
+        interval=interval
+    )
+    monitor_instance.monitor_resources()
+    
 @app.command()
 def logs():
     typer.echo("Fetching system logs")
