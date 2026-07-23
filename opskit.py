@@ -16,6 +16,7 @@ def monitor(
     username: Optional[str] = None,
     host: Optional[str] = None,
     key: Annotated[Optional[Path], typer.Option(exists=True)] = None,
+    password: Optional[str] = None,
     port: int = 22, 
     interval: float = 10
 ):
@@ -32,9 +33,9 @@ def monitor(
         host=host, 
         port=port, 
         key=key_str,
+        password=password,
         interval=interval
     )
-    monitor_instance.monitor_resources()
     
 @app.command()
 def logs():
