@@ -11,7 +11,8 @@ app = typer.Typer(
 
 @app.command()
 def monitor(
-    remote: bool = False, 
+    remote: bool = False,
+    yaml: Optional[str] = None,
     file: Optional[str] = None,
     username: Optional[str] = None,
     host: Optional[str] = None,
@@ -28,6 +29,7 @@ def monitor(
     
     monitor_instance = Monitor(
         remote=remote, 
+        yaml=yaml,
         file=file, 
         username=username, 
         host=host, 
@@ -44,10 +46,6 @@ def logs():
 @app.command()
 def ssh():
     typer.echo("Establishing SSH connection")
-
-@app.command()
-def cleanup():
-    typer.echo("Cleaning up")
 
 if __name__ == "__main__":
     app()

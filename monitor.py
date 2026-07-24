@@ -5,17 +5,26 @@ import utils
 import typer
 
 class Monitor:
-    def __init__(self, remote: bool = False, file: str = None, username: str = None,
+    def __init__(self, remote: bool = False, yaml: str = None, file: str = None, username: str = None,
                  host: str = None, port: int = None, key: str = None, password: str = None, interval: float = 10):
         self.remote = remote
+        self.yaml = yaml
         self.file = file
         self.interval = interval
-        if self.remote:
+        if self.remote and not self.yaml:
             self.username = username
             self.host = host
             self.port = port
             self.key = key
             self.password = password
+            self.monitor_remote_resources()
+        elif self.remote and self.yaml:
+            server = utils.read_yaml_file(self.yaml)
+            self.username = server.get("User")
+            self.host = server.get("HostName")
+            self.port = server.get("Port")
+            self.key = server.get("IdentityFile")
+            self.password = server.get("Password")
             self.monitor_remote_resources()
         else:
             self.monitor_resources()
