@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Annotated, Optional
 
 from monitor import Monitor
-from ssh import ssh
+from ssh import SSH
 
 app = typer.Typer(
     name="opskit",
@@ -58,8 +58,8 @@ def ssh(
         typer.echo(f"Key file {key} does not exist.")
         raise typer.Exit(code=1)
     key_str = str(key) if key else None
-    
-    ssh_instance = ssh( 
+
+    ssh_instance = SSH( 
             username=username, 
             host=host, 
             port=port, 
