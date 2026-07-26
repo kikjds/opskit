@@ -31,3 +31,9 @@ servers:
     Port: 1410
     Password: your_password
 ```
+
+## Example usage
+
+```bash
+python opskit.py monitor --remote --host 0.0.0.0 --username admin --password strong_password --file file_name.txt --interval 1
+```
