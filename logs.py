@@ -1,6 +1,11 @@
 import typer
 import utils
 import time
+from rich.console import Console
+from rich.traceback import install as install_rich_traceback
+
+install_rich_traceback()
+console = Console()
 class Log:
     def __init__(self, type: str, yaml: str = None, username: str = None, host: str = None,
                  port: int = None, key: str = None, password: str = None):
@@ -31,7 +36,7 @@ class Log:
             self.fetch_syslog_logs()
 
     def fetch_apache_logs(self):
-        typer.echo("Fetching Apache logs")
+        console.print("Fetching Apache logs", style="bold green")
         stdin, stdout, stderr = self.client.exec_command("tail -n 0 -f /var/log/apache2/access.log /var/log/apache2/error.log", get_pty=True)
         while True:
             line = stdout.readline()
@@ -40,11 +45,11 @@ class Log:
                     break
                 time.sleep(0.1)
                 continue
-            print(line.strip())
+            console.print(line.strip())
         self.client.close()
 
     def fetch_nginx_logs(self):
-        typer.echo("Fetching Nginx logs")
+        console.print("Fetching Nginx logs", style="bold green")
         stdin, stdout, stderr = self.client.exec_command("tail -n 0 -f /var/log/nginx/access.log /var/log/nginx/error.log", get_pty=True)
         while True:
             line = stdout.readline()
@@ -53,11 +58,11 @@ class Log:
                     break
                 time.sleep(0.1)
                 continue
-            print(line.strip())
+            console.print(line.strip())
         self.client.close()
 
     def fetch_auth_logs(self):
-        typer.echo("Fetching authentication logs")
+        console.print("Fetching authentication logs", style="bold green")
         stdin, stdout, stderr = self.client.exec_command("tail -n 0 -f /var/log/auth.log", get_pty=True)
         while True:
             line = stdout.readline()
@@ -66,11 +71,11 @@ class Log:
                     break
                 time.sleep(0.1)
                 continue
-            print(line.strip())
+            console.print(line.strip())
         self.client.close()
 
     def fetch_syslog_logs(self):
-        typer.echo("Fetching system logs")
+        console.print("Fetching system logs", style="bold green")
         stdin, stdout, stderr = self.client.exec_command("tail -n 0 -f /var/log/syslog", get_pty=True)
         while True:
             line = stdout.readline()
@@ -79,5 +84,5 @@ class Log:
                     break
                 time.sleep(0.1)
                 continue
-            print(line.strip())
+            console.print(line.strip())
         self.client.close()
