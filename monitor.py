@@ -3,6 +3,9 @@ from datetime import datetime
 import psutil
 import utils
 import typer
+from rich.console import Console
+from rich.panel import Panel
+from rich.text import Text
 
 class Monitor:
     def __init__(self, remote: bool = False, yaml: str = None, file: str = None, username: str = None,
@@ -11,6 +14,7 @@ class Monitor:
         self.yaml = yaml
         self.file = file
         self.interval = interval
+        self.console = Console()
         if self.remote and not self.yaml:
             self.username = username
             self.host = host
@@ -37,19 +41,70 @@ class Monitor:
             memory_info = psutil.virtual_memory()
             memory_usage = memory_info.percent
             now = datetime.now()
-            usage_data = (f"{str(now)} CPU: {cpu_percent:.1f}% | "
-                                        f"RAM: {memory_usage:.1f}% "
-                                        f"({memory_info.used // (1024 ** 2)}:{memory_info.total // (1024 ** 2)} MB) | "
-                                        f"Load: {psutil.getloadavg()[0]:.2f}")
+            load_1min = psutil.getloadavg()[0]
+            usage_panel = self._build_usage_panel(
+                now=now,
+                cpu_percent=cpu_percent,
+                memory_usage=memory_usage,
+                used_mb=memory_info.used // (1024 ** 2),
+                total_mb=memory_info.total // (1024 ** 2),
+                load_1min=load_1min,
+            )
             if self.file:
-                self.save_to_file(usage_data)
+                self.save_to_file(
+                    self._build_plain_usage_line(
+                        now=now,
+                        cpu_percent=cpu_percent,
+                        memory_usage=memory_usage,
+                        used_mb=memory_info.used // (1024 ** 2),
+                        total_mb=memory_info.total // (1024 ** 2),
+                        load_1min=load_1min,
+                    )
+                )
             else:
-                print(usage_data)
+                self.console.clear()
+                self.console.print(usage_panel)
             time.sleep(self.interval)
 
     def save_to_file(self, usage_data):
         with open(self.file, 'a') as f:
             f.write(f"{usage_data}\n")
+
+    def _build_plain_usage_line(self, now, cpu_percent, memory_usage, used_mb, total_mb, load_1min):
+        return (
+            f"{str(now)} CPU: {cpu_percent:.1f}% | "
+            f"RAM: {memory_usage:.1f}% "
+            f"({used_mb}/{total_mb} MB) | "
+            f"Load: {load_1min:.2f}"
+        )
+
+    def _build_usage_panel(self, now, cpu_percent, memory_usage, used_mb, total_mb, load_1min):
+        title = Text("OpsKit Monitor", style="bold cyan")
+        timestamp = Text(f"{str(now)}", style="dim")
+        cpu_style = self._get_metric_style(cpu_percent)
+        mem_style = self._get_metric_style(memory_usage)
+        load_style = self._get_metric_style(load_1min * 25)
+
+        body = Text()
+        body.append("CPU: ", style="bold white")
+        body.append(f"{cpu_percent:.1f}%", style=cpu_style)
+        body.append("  |  ", style="dim")
+        body.append("RAM: ", style="bold white")
+        body.append(f"{memory_usage:.1f}%", style=mem_style)
+        body.append(f" ({used_mb}/{total_mb} MB)", style="dim")
+        body.append("  |  ", style="dim")
+        body.append("Load: ", style="bold white")
+        body.append(f"{load_1min:.2f}", style=load_style)
+
+        panel_content = Text.assemble(title, "\n", timestamp, "\n", body)
+        return Panel.fit(panel_content, border_style="cyan", padding=(1, 2))
+
+    def _get_metric_style(self, value):
+        if value >= 80:
+            return "bold red"
+        if value >= 60:
+            return "bold yellow"
+        return "bold green"
 
     # Monitoring of remote system resources via SSH
     def monitor_remote_resources(self):
@@ -64,15 +119,29 @@ class Monitor:
                 cpu_percent = self._calculate_cpu_usage(prev_stats, curr_stats)
                 mem_stats = self._get_mem_stats()
 
-                usage_data = (f"{str(now)} CPU: {cpu_percent:.1f}% | "
-                            f"RAM: {mem_stats['used_percent']:.1f}% "
-                            f"({mem_stats['used_mb']:.0f}/{mem_stats['total_mb']:.0f} MB) | "
-                            f"Load: {mem_stats['load_1min']:.2f}")
+                usage_panel = self._build_usage_panel(
+                    now=now,
+                    cpu_percent=cpu_percent,
+                    memory_usage=mem_stats['used_percent'],
+                    used_mb=mem_stats['used_mb'],
+                    total_mb=mem_stats['total_mb'],
+                    load_1min=mem_stats['load_1min'],
+                )
                 
                 if self.file:
-                    self.save_to_file(usage_data)
+                    self.save_to_file(
+                        self._build_plain_usage_line(
+                            now=now,
+                            cpu_percent=cpu_percent,
+                            memory_usage=mem_stats['used_percent'],
+                            used_mb=mem_stats['used_mb'],
+                            total_mb=mem_stats['total_mb'],
+                            load_1min=mem_stats['load_1min'],
+                        )
+                    )
                 else:
-                    print(usage_data)
+                    self.console.clear()
+                    self.console.print(usage_panel)
                 prev_stats = curr_stats
                 
             except Exception as e:
