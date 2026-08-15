@@ -145,7 +145,7 @@ class Monitor:
                 prev_stats = curr_stats
                 
             except Exception as e:
-                typer.echo(f"Error: {e}")
+                self.console.print(f"[bold red]Error:[/] {e}")
             
             time.sleep(self.interval)
         
@@ -156,7 +156,7 @@ class Monitor:
         out = stdout.read().decode()
         err = stderr.read().decode()
         if err:
-            typer.echo(f"There was an error: {err}")
+            self.console.print(f"[bold red]There was an error:[/] {err}")
             return None
         
         lines = out.split('\n')
@@ -203,7 +203,7 @@ class Monitor:
         out = stdout.read().decode()
         err = stderr.read().decode()
         if err:
-            typer.echo(f"There was an error: {err}")
+            self.console.print(f"[bold red]There was an error:[/] {err}")
             return {}
         
         meminfo = {}
@@ -233,7 +233,7 @@ class Monitor:
         out = stdout.read().decode().strip()
         err = stderr.read().decode()
         if err:
-            typer.echo(f"There was an error collecting load average: {err}")
+            self.console.print(f"[bold red]There was an error collecting load average:[/] {err}")
             return (0.0, 0.0, 0.0)
         parts = out.split()
         return (float(parts[0]), float(parts[1]), float(parts[2]))

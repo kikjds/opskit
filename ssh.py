@@ -1,5 +1,9 @@
 import utils
 import typer
+from rich.console import Console
+from rich.prompt import Prompt
+
+console = Console()
 
 class SSH:
     def __init__(self, yaml: str = None, username: str = None, host: str = None,
@@ -14,25 +18,25 @@ class SSH:
 
     def connect_via_ssh(self):
         if not self.host or not self.username:
-            typer.echo("Missing host or username")
+            console.print("[bold red]Missing host or username[/]")
             raise typer.Exit(code=1)
         
-        typer.echo(f"Connecting to {self.host}...")
+        console.print(f"[yellow]Connecting to[/] {self.host}...")
         self.client = utils.connectViaSSH(self.username, self.host, self.key, self.password, self.port)
         
         if self.client is None:
-            typer.echo("Connection failed")
+            console.print("[bold red]Connection failed[/]")
             raise typer.Exit(code=1)
         
-        typer.echo(f"Connected as {self.username}@{self.host}")
-        typer.echo("Type 'exit' to close session\n")
+        console.print(f"[bold green]Connected[/] as {self.username}@{self.host}")
+        console.print("[dim]Type 'exit' to close session[/]\n")
         
         while True:
             try:
-                command = typer.prompt(f"{self.username}@{self.host}")
+                command = Prompt.ask(f"[cyan]{self.username}@{self.host}[/]")
                 
                 if command.lower() == "exit" or command.lower() == "quit":
-                    typer.echo("Closing session")
+                    console.print("[yellow]Closing session[/]")
                     break
                 
                 if not command.strip():
@@ -43,12 +47,12 @@ class SSH:
                 err = stderr.read().decode()
                 
                 if out:
-                    typer.echo(out)
+                    console.print(out, style="white", markup=False)
                 if err:
-                    typer.echo(f"{err}")
+                    console.print(err, style="bold red", markup=False)
                     
             except KeyboardInterrupt:
-                typer.echo("\nType 'exit' to close")
+                console.print("\n[dim]Type 'exit' to close[/]")
                 continue
             except Exception as e:
-                typer.echo(f"Error: {e}")
+                console.print(f"[bold red]Error:[/] {e}")

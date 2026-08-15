@@ -16,7 +16,10 @@ class Log:
         self.key = key
         self.password = password
         if self.type not in ["apache", "nginx", "auth", "syslog"]:
-            typer.echo(f"Invalid log type: {self.type}. Valid types are: apache, nginx, auth, syslog")
+            console.print(
+                f"[bold red]Invalid log type:[/] {self.type}\n"
+                "[dim]Valid types: apache, nginx, auth, syslog[/]"
+            )
             raise typer.Exit(code=1)
         if yaml:
             server = utils.read_yaml_file(yaml)
@@ -45,7 +48,7 @@ class Log:
                     break
                 time.sleep(0.1)
                 continue
-            console.print(line.strip())
+            console.print(line.strip(), markup=False)
         self.client.close()
 
     def fetch_nginx_logs(self):
@@ -58,7 +61,7 @@ class Log:
                     break
                 time.sleep(0.1)
                 continue
-            console.print(line.strip())
+            console.print(line.strip(), markup=False)
         self.client.close()
 
     def fetch_auth_logs(self):
@@ -71,7 +74,7 @@ class Log:
                     break
                 time.sleep(0.1)
                 continue
-            console.print(line.strip())
+            console.print(line.strip(), markup=False)
         self.client.close()
 
     def fetch_syslog_logs(self):
@@ -84,5 +87,5 @@ class Log:
                     break
                 time.sleep(0.1)
                 continue
-            console.print(line.strip())
+            console.print(line.strip(), markup=False)
         self.client.close()

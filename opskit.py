@@ -1,10 +1,13 @@
 import typer
 from pathlib import Path
 from typing import Annotated, Optional
+from rich.console import Console
 
 from logs import Log
 from monitor import Monitor
 from ssh import SSH
+
+console = Console()
 
 app = typer.Typer(
     name="opskit",
@@ -24,7 +27,7 @@ def monitor(
     interval: float = 10
 ):
     if key is not None and not key.exists():
-        typer.echo(f"Key file {key} does not exist.")
+        console.print(f"[bold red]Key file {key} does not exist.[/]")
         raise typer.Exit(code=1)
     
     key_str = str(key) if key else None
@@ -66,7 +69,7 @@ def ssh(
 ):
       
     if key is not None and not key.exists():
-        typer.echo(f"Key file {key} does not exist.")
+        console.print(f"[bold red]Key file {key} does not exist.[/]")
         raise typer.Exit(code=1)
     key_str = str(key) if key else None
 
